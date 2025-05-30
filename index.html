@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager - タスク管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navigation">
+        <div class="nav-container">
+            <button class="nav-btn active" onclick="switchPage('tasks')">
+                <i class="fas fa-tasks"></i>
+                タスク管理
+            </button>
+            <button class="nav-btn" onclick="switchPage('gantt')">
+                <i class="fas fa-chart-gantt"></i>
+                ガントチャート
+            </button>
+            <button class="nav-btn" onclick="switchPage('character')">
+                <i class="fas fa-store"></i>
+                ご褒美ショップ
+            </button>
+        </div>
+    </nav>
+
+    <div id="tasksPage" class="page-content active">
+    <div class="container">
+        <header class="header">
+                <h1><i class="fas fa-brain"></i> Task Manager</h1>
+            <p>シンプル・視覚的・報酬ベースのタスク管理</p>
+            <div class="stats">
+                <div class="stat-item">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="stat-menu-icon">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </div>
+                        </div>
+                    <span class="stat-number" id="totalTasks">0</span>
+                        <div class="stat-label">未完了タスク</div>
+                        <div class="stat-description">残っているタスクの数</div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="totalProgress" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text"></span>
+                        </div>
+                </div>
+                <div class="stat-item">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-menu-icon">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </div>
+                        </div>
+                    <span class="stat-number" id="completedTasks">0</span>
+                        <div class="stat-label">今月完了</div>
+                        <div class="stat-description">今月完了したタスクの数</div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="completedProgress" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text" id="completionRate"></span>
+                        </div>
+                </div>
+                <div class="stat-item">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-menu-icon" onclick="showPointsMenu(event)">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                        </div>
+                    <span class="stat-number" id="focusPoints">0</span>
+                        <div class="stat-label">フォーカスポイント</div>
+                        <div class="stat-description">獲得したポイントの合計</div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="pointsProgress" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text" id="pointsLevel">0pt</span>
+                        </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="task-input-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-plus-circle"></i>
+                        新しいタスクを追加
+                    </h2>
+                <div class="input-group">
+                    <input type="text" id="taskInput" class="task-input" placeholder="タスクを入力してください..." />
+                        <div class="date-input-group">
+                            <label class="date-label">開始日</label>
+                            <input type="date" id="taskStartDate" class="task-input" />
+                        </div>
+                        <div class="date-input-group">
+                            <label class="date-label">終了日</label>
+                            <input type="date" id="taskEndDate" class="task-input" />
+                        </div>
+                    <select id="prioritySelect">
+                            <option value="high"><i class="fas fa-exclamation-triangle"></i> 緊急・重要</option>
+                            <option value="medium" selected><i class="fas fa-circle"></i> 普通</option>
+                            <option value="low"><i class="fas fa-arrow-down"></i> 低優先度</option>
+                    </select>
+                        <div class="points-input-group">
+                            <label for="taskPoints">ポイント:</label>
+                            <select id="taskPoints" class="points-select">
+                                <option value="high">高 (20pt)</option>
+                                <option value="medium" selected>中 (15pt)</option>
+                                <option value="low">小 (10pt)</option>
+                    </select>
+                        </div>
+                        <button class="add-btn" onclick="addTask()">
+                            <i class="fas fa-plus"></i>
+                            追加
+                        </button>
+                    </div>
+                    
+                    <div class="csv-toggle-section">
+                        <button class="csv-toggle-btn" onclick="toggleCSVImport()">
+                            <i class="fas fa-file-csv"></i>
+                            CSVファイルから一括追加
+                            <i class="fas fa-chevron-down csv-toggle-icon" id="csvToggleIcon"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="csv-import-section" id="csvImportSection" style="display: none;">
+                        <div class="csv-controls">
+                            <div class="csv-upload-group">
+                                <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleCSVUpload(event)">
+                                <button class="csv-btn upload-btn" onclick="document.getElementById('csvFileInput').click()">
+                                    <i class="fas fa-upload"></i>
+                                    CSVファイル選択
+                                </button>
+                                <span id="csvFileName" class="csv-filename"></span>
+                            </div>
+                            <button class="csv-btn template-btn" onclick="downloadCSVTemplate()">
+                                <i class="fas fa-download"></i>
+                                テンプレートDL
+                            </button>
+                            <button class="csv-btn import-btn" onclick="importCSVTasks()" id="csvImportBtn" disabled>
+                                <i class="fas fa-file-import"></i>
+                                インポート実行
+                            </button>
+                            <button class="csv-btn cancel-upload-btn" onclick="cancelCSVUpload()" id="csvCancelBtn" style="display: none;">
+                                <i class="fas fa-times"></i>
+                                キャンセル
+                            </button>
+                        </div>
+                        
+                        <div class="csv-preview" id="csvPreview" style="display: none;">
+                            <h4 class="csv-preview-title">プレビュー</h4>
+                            <div class="csv-preview-content" id="csvPreviewContent"></div>
+                        </div>
+                </div>
+                
+                <div class="focus-timer">
+                        <h3 class="timer-title">
+                            <i class="fas fa-bullseye"></i>
+                            集中タイマー
+                        </h3>
+                        <div class="timer-settings">
+                            <label for="timerMinutes">タイマー時間:</label>
+                            <div class="timer-input-group">
+                                <button class="timer-adjust-btn" onclick="adjustTimer(-5)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" id="timerMinutes" min="1" max="120" value="25" onchange="updateTimerSetting()">
+                                <button class="timer-adjust-btn" onclick="adjustTimer(5)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    <div class="timer-display" id="timerDisplay">25:00</div>
+                    <div class="timer-controls">
+                            <button class="timer-btn start-timer" onclick="startTimer()">
+                                <i class="fas fa-play"></i>
+                                開始
+                            </button>
+                            <button class="timer-btn pause-timer" onclick="pauseTimer()">
+                                <i class="fas fa-pause"></i>
+                                一時停止
+                            </button>
+                            <button class="timer-btn reset-timer" onclick="resetTimer()">
+                                <i class="fas fa-redo"></i>
+                                リセット
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-columns">
+                    <div class="task-column urgent">
+                        <h2 class="column-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            緊急・重要
+                        </h2>
+                        <div id="urgentTasks"></div>
+                    </div>
+
+                    <div class="task-column normal">
+                        <h2 class="column-title">
+                            <i class="fas fa-list-ul"></i>
+                            その他のタスク
+                        </h2>
+                        <div id="normalTasks"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="characterPage" class="page-content">
+        <div class="container">
+            <header class="header">
+                <h1><i class="fas fa-store"></i> ご褒美ショップ</h1>
+                <p>ポイントを使って自分へのご褒美を購入</p>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-menu-icon">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </div>
+                        </div>
+                        <span class="stat-number" id="shopPoints">0</span>
+                        <div class="stat-label">保有ポイント</div>
+                        <div class="stat-description">使用可能なポイント</div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%"></div>
+                            </div>
+                            <span class="progress-text">ご褒美を購入しよう！</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="main-content">
+                <div class="task-input-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-plus-circle"></i>
+                        新しいご褒美を追加
+                    </h2>
+                    <div class="input-group">
+                        <input type="text" id="rewardName" class="task-input" placeholder="ご褒美の名前を入力..." />
+                        <input type="number" id="rewardCost" class="task-input" min="1" max="1000" placeholder="必要ポイント" />
+                        <select id="rewardCategory" class="task-input">
+                            <option value="food">🍰 食べ物</option>
+                            <option value="entertainment">🎮 娯楽</option>
+                            <option value="shopping">🛍️ ショッピング</option>
+                            <option value="relaxation">🛁 リラックス</option>
+                            <option value="other">✨ その他</option>
+                        </select>
+                        <button class="add-btn" onclick="addReward()">
+                            <i class="fas fa-plus"></i>
+                            追加
+                        </button>
+                </div>
+            </div>
+
+                <div class="task-columns">
+            <div class="task-column urgent">
+                        <h2 class="column-title">
+                            <i class="fas fa-gift"></i>
+                            登録済みご褒美
+                        </h2>
+                        <div id="availableRewards"></div>
+            </div>
+
+            <div class="task-column normal">
+                        <h2 class="column-title">
+                            <i class="fas fa-history"></i>
+                            購入履歴
+                        </h2>
+                        <div id="purchasedRewards"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ganttPage" class="page-content">
+        <div class="container">
+            <header class="header">
+                <h1><i class="fas fa-chart-gantt"></i> ガントチャート</h1>
+                <p>タスクの進行状況を時系列で可視化</p>
+            </header>
+
+            <div class="gantt-content">
+                <div class="gantt-stats">
+                    <div class="gantt-stat-card">
+                        <div class="gantt-stat-number" id="ganttTotalTasks">0</div>
+                        <div class="gantt-stat-label">総タスク数</div>
+                    </div>
+                    <div class="gantt-stat-card">
+                        <div class="gantt-stat-number" id="ganttActiveTasks">0</div>
+                        <div class="gantt-stat-label">進行中</div>
+                    </div>
+                    <div class="gantt-stat-card">
+                        <div class="gantt-stat-number" id="ganttCompletedTasks">0</div>
+                        <div class="gantt-stat-label">今月完了</div>
+                    </div>
+                    <div class="gantt-stat-card">
+                        <div class="gantt-stat-number" id="ganttOverdueTasks">0</div>
+                        <div class="gantt-stat-label">期限切れ</div>
+                    </div>
+                </div>
+
+                <div class="gantt-controls">
+                    <div class="view-controls">
+                        <button class="view-btn active" onclick="setGanttView('week')">
+                            <i class="fas fa-calendar-week"></i>
+                            週表示
+                        </button>
+                        <button class="view-btn" onclick="setGanttView('month')">
+                            <i class="fas fa-calendar-alt"></i>
+                            月表示
+                        </button>
+                    </div>
+                    <div class="date-navigation">
+                        <button class="nav-arrow" onclick="navigateGantt(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="current-period" id="currentPeriod">2024年1月</span>
+                        <button class="nav-arrow" onclick="navigateGantt(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="today-btn" onclick="goToToday()">
+                            <i class="fas fa-calendar-day"></i>
+                            今日
+                        </button>
+                    </div>
+                </div>
+
+                <!-- フィルタセクション -->
+                <div class="gantt-filters">
+                    <div class="filter-section">
+                        <div class="filter-group">
+                            <label class="filter-label">
+                                <i class="fas fa-search"></i>
+                                検索
+                            </label>
+                            <div class="search-input-group">
+                                <input type="text" id="ganttSearchInput" class="search-input" placeholder="タスク名で検索..." onkeyup="setGanttSearchFilter()">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label class="filter-label">
+                                <i class="fas fa-flag"></i>
+                                優先度
+                            </label>
+                            <div class="filter-buttons">
+                                <button class="filter-btn priority-filter-btn active" onclick="setGanttFilter('priority', 'all')">
+                                    すべて
+                                </button>
+                                <button class="filter-btn priority-filter-btn priority-high" onclick="setGanttFilter('priority', 'high')">
+                                    緊急
+                                </button>
+                                <button class="filter-btn priority-filter-btn priority-medium" onclick="setGanttFilter('priority', 'medium')">
+                                    普通
+                                </button>
+                                <button class="filter-btn priority-filter-btn priority-low" onclick="setGanttFilter('priority', 'low')">
+                                    低
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label class="filter-label">
+                                <i class="fas fa-tasks"></i>
+                                ステータス
+                            </label>
+                            <div class="filter-buttons">
+                                <button class="filter-btn status-filter-btn active" onclick="setGanttFilter('status', 'all')">
+                                    すべて
+                                </button>
+                                <button class="filter-btn status-filter-btn" onclick="setGanttFilter('status', 'active')">
+                                    進行中
+                                </button>
+                                <button class="filter-btn status-filter-btn" onclick="setGanttFilter('status', 'completed')">
+                                    完了
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <button class="clear-filters-btn" onclick="clearGanttFilters()">
+                                <i class="fas fa-times"></i>
+                                フィルタクリア
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gantt-chart-container">
+                    <div class="gantt-header">
+                        <div class="task-column-header">
+                            <i class="fas fa-tasks"></i>
+                            タスク情報
+                        </div>
+                        <div class="timeline-header" id="timelineHeader">
+                            <!-- Timeline headers will be generated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="gantt-body" id="ganttBody">
+                        <!-- Gantt chart content will be generated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="gantt-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, var(--priority-high-color), #b91c1c);"></div>
+                        <span>緊急・重要</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, var(--priority-medium-color), #d97706);"></div>
+                        <span>普通</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, var(--priority-low-color), #059669);"></div>
+                        <span>低優先度</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color completed" style="background: linear-gradient(135deg, var(--success-color), #374151);"></div>
+                        <span>完了</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #dc2626, #7f1d1d);"></div>
+                        <span>期限切れ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="points-menu-overlay" id="pointsMenuOverlay">
+        <div class="points-menu">
+            <div class="points-menu-header">
+                <h3 class="points-menu-title">ポイント管理</h3>
+                <button class="points-menu-close" onclick="closePointsMenu()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="manual-points-section">
+                <h4 style="margin: 15px 0 10px 0; font-size: 14px; font-weight: 600; color: var(--text-primary); font-family: 'Orbitron', monospace;">手動ポイント編集</h4>
+                <div class="manual-points-controls">
+                    <input type="number" id="manualPointsInput" placeholder="ポイント数" style="width: 80px; padding: 8px; border: 2px solid var(--secondary-color); border-radius: var(--border-radius); font-size: 12px; margin-right: 5px; font-family: 'Orbitron', monospace;">
+                    <button class="points-btn" style="background: var(--success-color); color: white; padding: 8px 12px; margin-right: 5px;" onclick="addManualPoints()">
+                        <i class="fas fa-plus"></i>
+                        追加
+                    </button>
+                    <button class="points-btn" style="background: var(--danger-color); color: white; padding: 8px 12px;" onclick="subtractManualPoints()">
+                        <i class="fas fa-minus"></i>
+                        減算
+                    </button>
+                </div>
+            </div>
+            <div class="point-history-section">
+                <h4 style="margin: 15px 0 10px 0; font-size: 14px; font-weight: 600; color: var(--text-primary); font-family: 'Orbitron', monospace;">直近3日のポイント履歴</h4>
+                <div id="pointHistoryContainer">
+                    <!-- Point history will be rendered here -->
+                </div>
+            </div>
+            <button class="points-btn reset-points" onclick="resetPoints()" style="width: 100%; margin-top: 20px;">
+                <i class="fas fa-undo"></i>
+                ポイントリセット
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
