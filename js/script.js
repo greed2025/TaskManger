@@ -1323,7 +1323,7 @@ function completeTaskFromGantt(taskId) {
         // ポイント追加
         const points = task.points || getDefaultPoints(task.priority);
         focusPoints += points;
-        addPointHistory('タスク完了', points);
+        addPointHistory(points, `タスク完了: ${task.content}`);
         
         saveData();
         updateStats();
@@ -1463,28 +1463,6 @@ function getDefaultPoints(priority) {
         'low': 10
     };
     return pointsMap[priority] || 15;
-}
-
-function addPointHistory(action, points) {
-    const today = new Date().toISOString().split('T')[0];
-    
-    if (!pointHistory) {
-        pointHistory = [];
-    }
-    
-    pointHistory.unshift({
-        date: today,
-        action: action,
-        points: points,
-        timestamp: new Date().toISOString()
-    });
-    
-    // 履歴は最新30件まで保持
-    if (pointHistory.length > 30) {
-        pointHistory = pointHistory.slice(0, 30);
-    }
-    
-    console.log('📝 ポイント履歴追加:', action, points);
 }
 
 // CSV Import Functions
